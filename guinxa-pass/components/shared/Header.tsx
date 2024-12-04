@@ -3,6 +3,8 @@ import { SignedIn, SignedOut, SignInButton, UserButton, UserProfile } from "@cle
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from '@/components/ui/button'
+import NavItems from './NavItems'
+import MobileNav from './MobileNav'
 
 const Header = () => {
     return (
@@ -16,20 +18,28 @@ const Header = () => {
                 </Link>
 
 
+                <SignedIn>
+                    {/*This Navbar will show on Desktop Devices */}
+                    <nav className='md:flex-between hidden w-full max-w-xs'>
+                        <NavItems />
+                    </nav>
+
+                </SignedIn>
+
                 <div className="flex w-32 justify-end gap-3">
                     <SignedIn>
                         <UserButton />
+                        {/*This Navbar will show on Mobile Devices */}
+                        <MobileNav />
                     </SignedIn>
                     <SignedOut>
-                        {/*<Button asChild className='rounded-full' size='lg'>
-                            <Link href='/sign-in'>
-                                Login
-                            </Link>
-                        </Button>*/}
-                        <SignInButton className='rounded-full' size='lg'>
-                            <Link href='/sign-in'>
-                                Login
-                            </Link>
+                        <SignInButton >
+                            <Button className='rounded-full' size='lg'>
+                                <Link href='/sign-in'>
+                                    Login
+                                </Link>
+                            </Button>
+
                         </SignInButton>
                     </SignedOut>
                 </div>

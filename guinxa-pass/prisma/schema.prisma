@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+// Database Connection Definition
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+//The User Model
+
+model User {
+ clerk_id     String      @clerkid       @unique
+ email      String      @unique
+ first_name     String    
+ last_name      String      
+ photo      String
+}
+
+// Event Model
+
+model Event {
+ title      String    
+ description?   String   
+ location?    String    
+ created_at?    DateTime      @default(now())
+ image_url  String
+ start_date?     DateTime      @default(now())
+ end_date?     DateTime      @default(now())
+ price?      Float
+ isFree?      Boolean     @default(false)
+ url?    String
+ category      Category     @relation(fields: [category_id], references: [id])
+ category_id Int
+ organizer   User     @relation(fields: [organizer_id], references: [clerk_id])
+ organizer_id String
+}
