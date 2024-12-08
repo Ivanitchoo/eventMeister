@@ -7,100 +7,101 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model category {
-  category_id                    Int     @id @default(autoincrement())
-  category_name                  String  @unique(map: "category_name_UNIQUE") @db.VarChar(50)
-  category_description           String? @db.VarChar(1024)
-  event_event_categoryTocategory event[] @relation("event_categoryTocategory")
+model Category {
+  category_id          Int     @id @default(autoincrement())
+  category_name        String  @unique(map: "category_name_UNIQUE") @db.VarChar(50)
+  category_description String? @db.VarChar(1024)
+  event                Event[] @relation("event_category")
 }
 
-model event {
-  event_id                          Int       @id @unique(map: "event_id_UNIQUE") @default(autoincrement())
-  title                             String    @db.VarChar(200)
-  description                       String?   @db.VarChar(1024)
-  location                          String?   @db.VarChar(1000)
-  image_url                         String    @db.VarChar(1024)
-  isFree                            Int?      @default(0) @db.TinyInt
-  price                             Decimal?  @db.Decimal(10, 2)
-  url                               String?   @db.VarChar(1000)
-  created_at                        DateTime? @default(now()) @db.DateTime(0)
-  start_at                          DateTime? @default(now()) @db.DateTime(0)
-  terminate_at                      DateTime? @default(now()) @db.DateTime(0)
-  category                          Int?
-  organizer                         String?   @db.VarChar(1000)
-  category_event_categoryTocategory category? @relation("event_categoryTocategory", fields: [category], references: [category_id], onDelete: Cascade, map: "fk_event_category")
-  user                              user?     @relation(fields: [organizer], references: [clerk_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_event_organizer")
-  ticket                            ticket[]
+model Event {
+  event_id     Int       @id @unique(map: "event_id_UNIQUE") @default(autoincrement())
+  title        String    @db.VarChar(200)
+  description  String?   @db.VarChar(1024)
+  location     String?   @db.VarChar(1000)
+  image_url    String    @db.VarChar(1024)
+  isFree       Int?      @default(0) @db.TinyInt
+  price        Decimal?  @db.Decimal(10, 2)
+  url          String?   @db.VarChar(1000)
+  created_at   DateTime? @default(now()) @db.DateTime(0)
+  start_at     DateTime? @default(now()) @db.DateTime(0)
+  terminate_at DateTime? @default(now()) @db.DateTime(0)
+  category     Int?
+  organizer    String?
+  category_id  Category? @relation("event_category", fields: [category], references: [category_id], onDelete: Cascade, map: "fk_event_category")
+  organizer_id User?     @relation(fields: [organizer], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_event_organizer")
+  ticket       Ticket[]
 
   @@index([category], map: "fk_event_category_idx")
   @@index([organizer], map: "fk_event_organizer_idx")
 }
 
-model order {
+model Order {
   order_id        Int          @id @default(autoincrement())
-  user_id         String       @db.VarChar(1000)
+  user_id         String?
+  stripe_id       String?
   quantity        Int?
   total_amount    Decimal?     @db.Decimal(10, 2)
   ordered_at      DateTime?    @default(now()) @db.DateTime(0)
   order_status_id Int?
-  orderstatus     orderstatus? @relation(fields: [order_status_id], references: [status_id], onDelete: NoAction, map: "fk_order_status")
-  user            user         @relation(fields: [user_id], references: [clerk_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_order")
-  order_item      order_item[]
+  orderstatus     OrderStatus? @relation(fields: [order_status_id], references: [status_id], onDelete: NoAction, map: "fk_order_status")
+  user            User?        @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_order")
+  orderitem       OrderItem[]
 
   @@index([order_status_id], map: "fk_order_status_idx")
   @@index([user_id], map: "fk_user_order_idx")
 }
 
-model order_item {
+model OrderItem {
   order_id Int
   item_id  Int
-  ticket   ticket @relation(fields: [item_id], references: [ticket_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_item")
-  order    order  @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_order")
+  ticket   Ticket @relation(fields: [item_id], references: [ticket_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_item")
+  order    Order  @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_order")
 
   @@id([order_id, item_id])
   @@index([item_id], map: "fk_item_idx")
 }
 
-model orderstatus {
+model OrderStatus {
   status_id Int     @id
   status    String  @unique(map: "status_UNIQUE") @db.VarChar(50)
-  order     order[]
+  order     Order[]
 }
 
-model ticket {
+model Ticket {
   ticket_id        Int           @id @unique(map: "ticket_id_UNIQUE")
   event_id         Int?
   ticket_type_id   Int?
   price            Decimal?      @db.Decimal(10, 2)
   ticket_status_id Int?
-  order_item       order_item[]
-  event            event?        @relation(fields: [event_id], references: [event_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_event_ticket")
-  ticketstatus     ticketstatus? @relation(fields: [ticket_status_id], references: [status_id], onDelete: NoAction, map: "fk_ticket_status")
-  tickettype       tickettype?   @relation(fields: [ticket_type_id], references: [type_id], map: "fk_ticket_type")
+  orderitem        OrderItem[]
+  event            Event?        @relation(fields: [event_id], references: [event_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_event_ticket")
+  ticketstatus     TicketStatus? @relation(fields: [ticket_status_id], references: [status_id], onDelete: NoAction, map: "fk_ticket_status")
+  tickettype       TicketType?   @relation(fields: [ticket_type_id], references: [type_id], map: "fk_ticket_type")
 
   @@index([event_id], map: "fk_event_ticket_idx")
   @@index([ticket_status_id], map: "fk_ticket_status_idx")
   @@index([ticket_type_id], map: "fk_ticket_type_idx")
 }
 
-model ticketstatus {
+model TicketStatus {
   status_id     Int      @id
   ticket_status String   @unique(map: "ticket_status_UNIQUE") @db.VarChar(50)
-  ticket        ticket[]
+  ticket        Ticket[]
 }
 
-model tickettype {
+model TicketType {
   type_id     Int      @id
   ticket_type String   @unique(map: "ticket_type_UNIQUE") @db.VarChar(50)
-  ticket      ticket[]
+  ticket      Ticket[]
 }
 
-model user {
-  clerk_id   String  @id @unique(map: "clerk_id_UNIQUE") @db.VarChar(1000)
+model User {
+  user_id    String  @id
   email      String  @unique(map: "email_UNIQUE") @db.VarChar(100)
   first_name String? @db.VarChar(50)
   last_name  String? @db.VarChar(50)
-  photo      String? @db.VarChar(1000)
-  event      event[]
-  order      order[]
+  photo      String? @db.VarChar(150)
+  event      Event[]
+  order      Order[]
 }
